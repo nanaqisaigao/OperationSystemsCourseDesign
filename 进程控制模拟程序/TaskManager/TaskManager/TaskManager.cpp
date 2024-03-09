@@ -9,7 +9,7 @@
 #pragma comment(lib,"comctl32.lib")
 #pragma comment(linker,"\"/manifestdependency:type='Win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='X86' publicKeyToken='6595b64144ccf1df' language='*'\"")
 #define MAX_LOADSTRING 100
-// 全局变量:
+// 全局变量 和 结构体的定义
 HINSTANCE hInst;                                // 当前实例
 WCHAR szTitle[MAX_LOADSTRING];                  // 标题栏文本
 WCHAR szWindowClass[MAX_LOADSTRING];            // 主窗口类名
@@ -39,7 +39,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
 
+	/*初始化操作：
 
+		创建主窗口和初始化一些全局变量。
+		调用InitCommonControlsEx初始化通用控件库。
+		创建时钟显示窗口(clk)，以及预备队列(hRun)、运行队列(hRun)、完成队列(hFinish)的列表控件。*/
 	INITCOMMONCONTROLSEX icex;
 	icex.dwSize = sizeof(INITCOMMONCONTROLSEX);
 	icex.dwICC = ICC_WIN95_CLASSES;
@@ -382,7 +386,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		
 		printf("init view");
 		break;
+//		定时器：
+//使用SetTimer设置定时器，每隔500毫秒触发一次。定时器处理函数（WM_TIMER消息）主要用于更新
+//			系统时钟、模拟进程的调度和状态切换。
 	case WM_CREATE:
+		/*进程创建和更新：
+			使用CreateWindow创建编辑框和按钮等控件，用于手动或自动生成进程。
+			通过EnumProcess函数更新运行队列的显示。*/
 		SetTimer(hWnd, 1, 500, NULL);
 		CreateWindowEx(0,  //扩展风格  
 			WC_LISTVIEW, //这是系统定义的宏，WC_LISTVIEW对应 "SysListView32"
@@ -456,6 +466,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		//MessageBox(hWnd, TEXT("右键点击预备列表则删除\n点击就绪队列则阻塞\n点击阻塞则就绪"), TEXT("右键点击"), MB_OK);
 
 		break;
+		/*在WM_TIMER消息中模拟运行队列的进程调度，更新进程状态和完成队列。*/
 	case WM_TIMER:{
 		WCHAR buf[16];
 		swprintf(buf, 16, L"TIME:%d", cpu_clock);
