@@ -21,14 +21,37 @@ HWND clk;			//时钟显示
 Plist task;			//进程列表
 PCB* pReady;			//预备缓存
 PCB* pf;			//完成列表
+
 HWND hReady;		//预备队列
 HWND hRun;			//运行队列
 HWND hFinish;		//完成队列
-HFONT font;
-// 此代码模块中包含的函数的前向声明:
+
+HFONT font;	//字体句柄
+// 此代码模块中包含的函数的前向声明: 
+// 这些函数共同管理主应用程序窗口和“关于”对话框的初始化、消息处理和交互逻辑。
+
+//此函数负责注册主应用程序窗口的窗口类。
+//它以实例句柄（hInstance）作为参数，该句柄用于唯一标识应用程序实例。
+//窗口类结构（WNDCLASSEXW）中填充了各种属性，定义了窗口类的行为和外观。
+//函数返回一个ATOM，这是一个16位无符号整数，用于唯一标识窗口类。此值稍后在创建窗口时使用。
 ATOM                MyRegisterClass(HINSTANCE hInstance);
+
+//此函数负责初始化应用程序实例、创建主窗口并显示它。
+//它以实例句柄（hInstance）和命令显示类型（nCmdShow）作为参数。
+//函数使用注册的窗口类创建主窗口，并将其设置为应用程序的主窗口。
+//返回一个布尔值，指示初始化是否成功。
 BOOL                InitInstance(HINSTANCE, int);
+
+//这是主窗口过程或回调函数，应用程序在其中处理发送到窗口的各种消息。
+//它有四个参数：hWnd是窗口的句柄，message是消息代码，wParam和lParam是额外的消息特定信息。
+//函数包含一个switch语句，处理不同类型的消息，如WM_COMMAND（用于处理菜单和控件通知），WM_PAINT（用于绘制窗口），WM_DESTROY（窗口被销毁时）等。
+//还包括对自定义消息和用户交互的特定处理。
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
+
+//此函数是“关于”对话框的回调。
+//它处理与对话框初始化和对话框内用户交互相关的消息。
+//使用WM_INITDIALOG消息初始化对话框，使用WM_COMMAND处理按钮点击或其他用户操作。
+//返回INT_PTR，指示消息是否被处理。
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
@@ -84,10 +107,21 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	
 
     // 主消息循环:
+	//Windows 桌面应用程序的核心部分，负责接收和处理系统发送给应用程序的消息。
+	//GetMessage(&msg, nullptr, 0, 0) : 这个函数用于从消息队列中取得一个消息。
+	// 如果队列中没有消息，该函数会使应用程序进入等待状态，直到有消息到达为止。
     while (GetMessage(&msg, nullptr, 0, 0))
     {
+		//TranslateAccelerator(msg.hwnd, hAccelTable, &msg) :
+		//  这个函数用于检查消息是否为加速键消息，并将其翻译为相应的命令消息。
+		// 加速键消息通常用于处理键盘快捷键。
         if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
         {
+	/*		如果消息不是加速键消息，那么就会调用 TranslateMessage(&msg) 来翻
+	译消息，然后调用 DispatchMessage(&msg) 来分派消息给窗口过程处理。
+				消息循环一直持续，直到 GetMessage 函数返回一个值为 0 的消息
+			，表示收到了退出消息，这时程序退出消息循环并返回。
+				1*/
             TranslateMessage(&msg);
             DispatchMessage(&msg);
         }
@@ -110,6 +144,8 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 
     wcex.cbSize = sizeof(WNDCLASSEX);
 
+//通过填充 WNDCLASSEXW 结构体(wcex) 的各个字段，设置窗口类的属性，
+// 例如窗口过程(WndProc)、图标、光标、背景颜色等。
     wcex.style          = CS_HREDRAW | CS_VREDRAW;
     wcex.lpfnWndProc    = WndProc;
     wcex.cbClsExtra     = 0;
@@ -125,6 +161,9 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
     return RegisterClassExW(&wcex);
 }
 
+//用于枚举进程并更新一个列表视图控件 (hRun)。
+//当 md 参数为1时，表示清空列表视图控件。
+//当 md 参数为0时，表示初始化列表视图并插入一行，
 int char2int(TCHAR* p) {
 	int x = 0;
 	while (*p >=L'0' && *p<=L'9') {
@@ -386,13 +425,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		
 		printf("init view");
 		break;
-//		定时器：
-//使用SetTimer设置定时器，每隔500毫秒触发一次。定时器处理函数（WM_TIMER消息）主要用于更新
-//			系统时钟、模拟进程的调度和状态切换。
-	case WM_CREATE:
 		/*进程创建和更新：
 			使用CreateWindow创建编辑框和按钮等控件，用于手动或自动生成进程。
 			通过EnumProcess函数更新运行队列的显示。*/
+
+//			系统时钟、模拟进程的调度和状态切换。
+	case WM_CREATE:	//在窗口创建时初始化各个控件，包括创建时钟显示、进程列表等。
+			//		定时器：
+	//使用SetTimer设置定时器，每隔500毫秒触发一次。定时器处理函数（WM_TIMER消息）主要用于更新
 		SetTimer(hWnd, 1, 500, NULL);
 		CreateWindowEx(0,  //扩展风格  
 			WC_LISTVIEW, //这是系统定义的宏，WC_LISTVIEW对应 "SysListView32"
@@ -467,15 +507,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 		break;
 		/*在WM_TIMER消息中模拟运行队列的进程调度，更新进程状态和完成队列。*/
-	case WM_TIMER:{
+	case WM_TIMER:{//不停在定时器接收传来的消息
 		WCHAR buf[16];
 		swprintf(buf, 16, L"TIME:%d", cpu_clock);
 		SetWindowText(clk, buf);
 		SendMessage(clk, WM_SETFONT,(WPARAM)font, NULL);
 		if (timectrl) { 
-			 
-			PCB* p = pReady->next->next;//获得第一个
-			if (p->pid > 0) {
+			 //只有当 timectrl 为 true 时才执行下面的操作。
+			PCB* p = pReady->next->next;//获得第一个进程
+			if (p->pid > 0) {//判断确保获取的进程有效，即其进程ID大于0。
 				printf("clk=%d  arr=%d\n", cpu_clock, p->arrive);
 				if (cpu_clock == p->arrive) {
 					pReady->next->next = p->next; //更新队首
@@ -553,20 +593,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		break;
 	}
 		
-    case WM_COMMAND:
+    case WM_COMMAND://处理菜单选择、按钮点击等用户交互事件。这个 case 处理窗口接收到的命令消息。
         {
-            int wmId = LOWORD(wParam);
+            int wmId = LOWORD(wParam);// 从 wParam 中获取命令的 ID。
 			PCB* p;
             // 分析菜单选择:
             switch (wmId)
             {
-            case IDM_ABOUT:
+            case IDM_ABOUT:   //当用户选择了关于菜单时，会弹出关于对话框。
                 DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
                 break;
             case IDM_EXIT:
                 DestroyWindow(hWnd);
                 break;
 			case 5003:
+				//自动创建新的进程控制块
 				//MessageBox(hWnd, TEXT("click new button"), TEXT("click"), MB_OK);
 				p = task.create();
 				p->arrive = rand()%5+max(cpu_clock,pReady->arrive)+1;
@@ -576,6 +617,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				updateReady(0);
 				break;
 			case 5004:
+				//手动添加进程控制块
 				TCHAR szText1[512];
 				p = task.create();
 				GetDlgItemText(hWnd,4001, (LPTSTR)szText1, 512);
@@ -590,6 +632,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				pReady = p;			//更新队尾
 				updateReady(0);
 				break;
+				//当用户选择了不同的算法类型时，会设置 algo_type
+				//  变量为对应的值，这些值是通过命令 ID 和 5005 的差值得到的。
 			case 5005:
 			case 5006:
 			case 5007:
@@ -610,7 +654,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
         }
         break;
-    case WM_PAINT:
+    case WM_PAINT://处理绘图相关事件。
         {
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(hWnd, &ps);

@@ -23,7 +23,7 @@ class Plist {
 	int length;	//进程数
 public:
 	Plist();
-	void insertP(PCB* p);//按进程优先数的顺序插入
+	void insertP(PCB* p);//按进程优先数的顺序插入	最高优先级
 	void insertR(PCB* p);//轮转法插入到就绪队列的队尾
 	PCB* firstin();		//第一个进程投入运行
 	void print();		//打印输出
