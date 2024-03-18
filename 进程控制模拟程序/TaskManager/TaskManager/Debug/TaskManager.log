@@ -1,1 +1,3 @@
-﻿  TaskManager.vcxproj -> D:\project\GitHub\OperationSystemsCourseDesign\进程控制模拟程序\TaskManager\Debug\TaskManager.exe
+﻿  TaskManager.cpp
+D:\project\GitHub\OperationSystemsCourseDesign\进程控制模拟程序\TaskManager\TaskManager\TaskManager.cpp(596,21): error C2059: 语法错误:“:”
+D:\project\GitHub\OperationSystemsCourseDesign\进程控制模拟程序\TaskManager\TaskManager\TaskManager.cpp(597,9): error C2143: 语法错误: 缺少“;”(在“{”的前面)

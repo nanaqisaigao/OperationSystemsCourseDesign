@@ -593,7 +593,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		break;
 	}
 		
-    case WM_COMMAND://处理菜单选择、按钮点击等用户交互事件。这个 case 处理窗口接收到的命令消息。
+    case WM_COMMAND+://处理菜单选择、按钮点击等用户交互事件。这个 case 处理窗口接收到的命令消息。
         {
             int wmId = LOWORD(wParam);// 从 wParam 中获取命令的 ID。
 			PCB* p;
